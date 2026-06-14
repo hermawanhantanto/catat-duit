@@ -21,7 +21,7 @@ Prefer Context7 over web search for library docs. Limit `resolve-library-id` to 
 
 **Code is read more than it's written. Optimize for the reader.**
 
-- Names reveal intent. No abbreviations except for domain terms (id, url, dto).
+- Names reveal intent. No abbreviations except for domain terms (id, url, dto). No single-character names (`x`, `p`, `cb`) — even for callback parameters, loop variables, or destructured locals. Spell them out (`part`, `element`, `index`).
 - Functions do one thing. Split if the name has "and" in it.
 - No comments explaining *what* — comments only when explaining *why* a non-obvious choice was made.
 - No dead code, no commented-out blocks, no speculative "might need this" stubs.

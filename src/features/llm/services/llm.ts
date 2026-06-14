@@ -1,19 +1,11 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { minimax } from "vercel-minimax-ai-provider";
 import type { LanguageModel } from "ai";
 import type { ChatModelId } from "@/features/llm/types/llm";
 
-const apiKey = process.env.LLM_API_KEY;
+const apiKey = process.env.MINIMAX_API_KEY;
 if (!apiKey) {
-  throw new Error("LLM_API_KEY is not set");
+  throw new Error("MINIMAX_API_KEY is not set");
 }
-
-const baseURL = process.env.LLM_BASE_URL ?? "https://api.minimax.chat/v1";
-
-const provider = createOpenAICompatible({
-  name: "minimax",
-  apiKey,
-  baseURL,
-});
 
 /**
  * Resolve a chat model by id. Centralized so the rest of the codebase
@@ -23,5 +15,5 @@ const provider = createOpenAICompatible({
  * @returns A `LanguageModel` instance ready for `generateText` / `streamText`.
  */
 export function getModel(id: ChatModelId): LanguageModel {
-  return provider(id);
+  return minimax(id);
 }
