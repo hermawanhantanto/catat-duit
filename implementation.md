@@ -149,21 +149,33 @@ CSV / Excel.
   Button on transactions page triggers download of CSV or Excel.
   - *Verify:* Clicking downloads the file with current filter applied.
 
-## Phase 8 — Production polish
-Ship it.
+## Phase 8 — Production polish + Deploy
+App is feature-complete. This phase packages, deploys, and verifies it end to end.
 
 - [ ] **8.1 Dockerfile + Railway config**
   Multi-stage build with Bun, exposed port. `railway.json` for start command.
   - *Verify:* Build succeeds, deployed app starts, env vars injected.
 
 - [ ] **8.2 Env var setup**
-  Document all env vars: `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `WHITELISTED_CHAT_ID`, `LLM_API_KEY`, `AUTH_SECRET`. Add to Railway.
-  - *Verify:* App boots with all vars set. Missing var → clear error.
+  Document all env vars: `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `WHITELISTED_CHAT_ID`, `LLM_API_KEY`, `AUTH_SECRET`, `PUBLIC_URL` (the deployed Railway URL). Add to Railway.
+  - *Verify:* App boots with all vars set. Missing var → clear error at startup.
 
-- [ ] **8.3 Logging + error visibility**
+- [ ] **8.3 Health check endpoint**
+  `GET /api/health` returns 200 with `{ status: "ok", db: "ok" }` when the app and DB are reachable; 503 otherwise. Point Railway's healthcheck at this URL.
+  - *Verify:* Endpoint returns 200 against a healthy DB. Returns 503 if the DB is unreachable.
+
+- [ ] **8.4 Database migrations on deploy**
+  Start command runs `prisma migrate deploy` before `next start` (e.g. `bunx prisma migrate deploy && bun run start`). Schema changes ship atomically with the deploy — never deploy un-migrated code.
+  - *Verify:* First deploy creates all tables. Subsequent deploys apply pending migrations without data loss.
+
+- [ ] **8.5 Logging + error visibility**
   Structured logs for: incoming Telegram message, LLM parse result, DB write, errors. At least `console.log` with timestamp + context.
   - *Verify:* Tail Railway logs, see a parse → save flow end to end.
 
-- [ ] **8.4 Telegram webhook re-registration on deploy**
-  After deploy, automatically re-call `setWebhook` with the new URL (or run as a manual one-liner script).
-  - *Verify:* A redeploy keeps the bot working.
+- [ ] **8.6 Telegram webhook auto-registration on deploy**
+  On app startup, call `setWebhook` with `${PUBLIC_URL}/api/telegram/webhook` (idempotent — Telegram accepts repeated calls). No manual re-registration step.
+  - *Verify:* A redeploy with a new `PUBLIC_URL` keeps the bot working. `getWebhookInfo` returns the current URL.
+
+- [ ] **8.7 Deploy + post-deploy smoke test**
+  One-command deploy (`railway up`, or `bun run deploy` wrapper). After deploy returns, run: (1) `curl /api/health` → 200, (2) send a test Telegram message → bot replies with a parse confirmation, (3) check Railway logs for the smoke-test message. On any failure, roll back via Railway dashboard to the previous deployment and re-run.
+  - *Verify:* Deploy → health 200 → test message gets a reply → log line appears. Rollback path documented and rehearsed once.
