@@ -1,0 +1,29 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Source {
+  text
+  photo
+}
+
+model Transaction {
+  id                Int      @id @default(autoincrement())
+  amount            Int
+  description       String
+  category          String
+  date              DateTime
+  telegramMessageId String?  @unique
+  source            Source
+  groupId           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([groupId])
+}

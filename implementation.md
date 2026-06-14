@@ -19,8 +19,8 @@ Project scaffold, data model, auth, deploy target.
   Install via the v4 PostCSS pattern, run `bunx shadcn@latest init`.
   - *Verify:* A test shadcn component (e.g. Button) renders with correct styles in a page.
 
-- [ ] **1.3 Define Prisma schema**
-  Model: `Transaction { id, amount (Int), description, category, date, telegramMessageId?, source (text|photo), groupId?, createdAt }`. Unique index on `telegramMessageId`. Run `bunx prisma migrate dev`.
+- [x] **1.3 Define Prisma schema**
+  Model: `Transaction { id, amount (Int), description, category, date, telegramMessageId?, source (text|photo), groupId?, createdAt, updatedAt }`. Unique index on `telegramMessageId`. Run `bunx prisma migrate dev`.
   - *Verify:* `bunx prisma studio` shows the table, can create + read a row.
 
 - [ ] **1.4 Set up Better Auth (single user)**
