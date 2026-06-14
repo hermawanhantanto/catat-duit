@@ -11,11 +11,11 @@ You'll need accounts and credentials for:
 ## Phase 1 — Foundation
 Project scaffold, data model, auth, deploy target.
 
-- [ ] **1.1 Initialize Next.js with Bun**
+- [x] **1.1 Initialize Next.js with Bun**
   `bun create next-app` with TypeScript, App Router, Tailwind, `src/` dir, ESLint.
   - *Verify:* `bun dev` serves localhost:3000, `bun run build` succeeds, `bun run lint` clean.
 
-- [ ] **1.2 Configure Tailwind v4 + shadcn/ui**
+- [x] **1.2 Configure Tailwind v4 + shadcn/ui**
   Install via the v4 PostCSS pattern, run `bunx shadcn@latest init`.
   - *Verify:* A test shadcn component (e.g. Button) renders with correct styles in a page.
 
