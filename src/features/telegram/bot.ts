@@ -1,5 +1,6 @@
 import { Bot } from "grammy";
 import { handleTextMessage } from "./handlers/text-message";
+import { registerConfirmationHandlers } from "./handlers/confirmation-handler";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {
@@ -13,4 +14,5 @@ bot.init().catch((err) => {
 });
 
 bot.command("start", (ctx) => ctx.reply("Hello from catat-duit."));
+registerConfirmationHandlers(bot);
 bot.on("message:text", handleTextMessage);

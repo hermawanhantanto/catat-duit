@@ -13,6 +13,12 @@ enum Source {
   photo
 }
 
+enum Status {
+  pending
+  active
+  deleted
+}
+
 model Transaction {
   id                Int      @id @default(autoincrement())
   amount            Int
@@ -22,10 +28,12 @@ model Transaction {
   telegramMessageId String?  @unique
   source            Source
   groupId           String?
+  status            Status   @default(active)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   @@index([groupId])
+  @@index([status])
 }
 
 model User {
