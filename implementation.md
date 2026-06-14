@@ -34,7 +34,7 @@ Project scaffold, data model, auth, deploy target.
 ## Phase 2 — Telegram bot skeleton
 Bot webhook, whitelisting, message receipt.
 
-- [ ] **2.1 Create grammY webhook handler**
+- [x] **2.1 Create grammY webhook handler**
   Route handler at `app/api/telegram/webhook/route.ts` that constructs a `Bot` from `TELEGRAM_BOT_TOKEN` and feeds updates to it.
   - *Verify:* Send `/start` to the bot, see a reply.
 
