@@ -43,3 +43,10 @@ Prefer Context7 over web search for library docs. Limit `resolve-library-id` to 
 - `components/ui/` is shadcn primitives shared across features. `components/layout/` is shared structural UI (sidebar, navbar).
 - `lib/` is global config only — Prisma client, auth, env helpers. Nothing feature-specific.
 - Route groups like `(auth)`, `(dashboard)` organize routes without affecting URLs.
+
+## 5. Fail Fast on Missing Config
+
+**Validate required env vars at module load.**
+
+- Required env vars are read at the top of the file that uses them and `throw` on missing/empty. The rest of the file uses the value as non-null — no "is it set?" conditionals scattered through request handlers.
+- Missing config crashes the app at boot, not on the Nth request.

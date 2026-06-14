@@ -38,7 +38,7 @@ Bot webhook, whitelisting, message receipt.
   Route handler at `app/api/telegram/webhook/route.ts` that constructs a `Bot` from `TELEGRAM_BOT_TOKEN` and feeds updates to it.
   - *Verify:* Send `/start` to the bot, see a reply.
 
-- [ ] **2.2 Whitelist chat_id**
+- [x] **2.2 Whitelist chat_id**
   Read `WHITELISTED_CHAT_ID` from env. If `update.chat.id !== WHITELISTED_CHAT_ID`, return 200 and ignore.
   - *Verify:* A second Telegram account gets no response.
 
