@@ -58,13 +58,15 @@ The core: parse → confirm → store, with undo and idempotency.
   Telegram integration: `bot.on("message:text", handleTextMessage)` in `features/telegram/handlers/text-message.ts` calls the parser, replies with a formatted readback, or asks for clarification on null fields. Errors are logged and a generic apology is sent — webhook still returns 200.
   - *Verify:* End-to-end: send a text to the bot on the whitelisted chat → get a parsed readback or a clarification request. Spec cases verified during setup — "makan siang 15k" → `{ amount: 15000, date: today, category: "Food", description: "makan siang" }`; "kemarin 20rb bensin" → yesterday's date; "halo" and "makan" → ambiguous readback.
 
-- [ ] **3.3 Confirmation message format**
-  Render parsed record as: `Lunch, Rp 15.000, 2026-06-13, Food\n\nSave?` with a reply keyboard `[Yes] [No] [Edit]`.
-  - *Verify:* Visual review. "lunch 15k" renders correctly formatted.
+- [x] **3.3 Confirmation message format**
+  Inline keyboard `[Yes <id>] [No <id>]` attached to the parsed readback. The transaction id is encoded in each button's `callback_data` (e.g. `yes:42`), so the user never has to read it. No "Edit" button — if the user wants to change something, they tap No and send a new message.
+  `confirmationKeyboard(pendingId)` in `features/telegram/utils/confirmation-keyboard.ts` builds the markup; `bot.callbackQuery(/^yes:(\d+)$/, ...)` and `/^no:(\d+)$/, ...` in `features/telegram/handlers/confirmation-handler.ts` dispatch on the prefix.
+  - *Verify:* Send "makan siang 15k" → bot replies with the readback + a two-button row. Visual review of the rendered Telegram message.
 
-- [ ] **3.4 Wire parse → confirm → store**
-  On text message: parse with LLM, send confirmation, wait for reply, on "yes" insert row, on "no" discard, on "edit" ask for corrections.
-  - *Verify:* Send "lunch 15k" → see parse → reply yes → see "saved" → row in DB. Reply no → no row.
+- [x] **3.4 Wire parse → confirm → store**
+  End-to-end flow on text message: `parseTransaction` → `createPendingTransaction` (INSERT with `status: 'pending'`) → reply with readback + keyboard. Tap **Yes** → `confirmPendingTransaction` (UPDATE `status='active'` via `updateMany`, returns boolean) → strip buttons via `editMessageReplyMarkup()` → reply "Saved ✓". Tap **No** → `cancelPendingTransaction` (UPDATE `status='deleted'`) → strip buttons → reply "Cancelled.". Both service functions are idempotent — a double-tap returns `false` and the handler does a silent no-op (no extra message).
+  Status flag is a single `Status` enum (`pending | active | deleted`) on `Transaction` (no separate queue table). `getTransactionById` is intentionally not used — the original parsed message is still visible after buttons are stripped, so the reply can be a brief "Saved ✓" / "Cancelled." without restating the fields.
+  - *Verify:* Send "makan siang 15k" → see parse + buttons → tap Yes → see "Saved ✓", row exists in DB with `status='active'`. Send "transport 50rb" → tap No → see "Cancelled.", row exists with `status='deleted'`. Double-tap on Yes → only one status flip; second tap is a silent no-op.
 
 - [ ] **3.5 Add /undo command**
   On `/undo`: delete the most recent transaction for the whitelisted chat. Reply with what was deleted.

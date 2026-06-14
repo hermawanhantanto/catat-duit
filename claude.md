@@ -59,3 +59,12 @@ Prefer Context7 over web search for library docs. Limit `resolve-library-id` to 
 - Always include `@param` and `@return`, even when TypeScript already provides the types — they document intent and surface in IDE tooltips.
 - Inline arrow callbacks (e.g. `bot.command("start", ctx => ...)`) don't need JSDoc — the call site is self-documenting.
 - Keep it short — one or two lines. If a function needs a paragraph, the function probably does too much.
+
+## 7. Minimize Database Roundtrips
+
+**One query per intent. No N+1, no fetch-after-mutate when a flag will do.**
+
+- If a service function does an `UPDATE` (or `updateMany`) and the caller doesn't actually need the row's fields, return a boolean (`result.count > 0`) — not a re-fetched `Transaction`. Don't reach for `update` + `findUnique` when `updateMany`'s count is enough.
+- For lists, use a single `findMany` with `include` / `select` rather than a `findMany` followed by a per-item query. Watch for the N+1 trap when iterating: any `for (const x of list) await prisma.x.findFirst(...)` pattern is almost always wrong.
+- Composite indexes belong on the columns you actually filter and sort on together — the `@@index` lines in `schema.prisma` are not decoration, they're a contract.
+- If you find yourself writing "fetch, then mutate, then fetch again", stop and ask: what does the caller actually need? Often the answer is just a flag.
