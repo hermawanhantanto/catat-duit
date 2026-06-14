@@ -7,6 +7,13 @@ if (!allowedChatId) {
   throw new Error("WHITELISTED_CHAT_ID is not set");
 }
 
+/**
+ * Telegram webhook entry point.
+ * Always returns 200 — non-2xx would trigger Telegram retries.
+ *
+ * @param request - The incoming webhook request from Telegram.
+ * @returns A 200 response regardless of outcome.
+ */
 export async function POST(request: Request) {
   try {
     const update = await request.json();

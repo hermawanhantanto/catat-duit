@@ -50,3 +50,12 @@ Prefer Context7 over web search for library docs. Limit `resolve-library-id` to 
 
 - Required env vars are read at the top of the file that uses them and `throw` on missing/empty. The rest of the file uses the value as non-null — no "is it set?" conditionals scattered through request handlers.
 - Missing config crashes the app at boot, not on the Nth request.
+
+## 6. JSDoc on Named Functions
+
+**Multi-line JSDoc on every named function declaration.**
+
+- The summary captures the *why* or non-obvious behavior, not a restatement of the signature.
+- Always include `@param` and `@return`, even when TypeScript already provides the types — they document intent and surface in IDE tooltips.
+- Inline arrow callbacks (e.g. `bot.command("start", ctx => ...)`) don't need JSDoc — the call site is self-documenting.
+- Keep it short — one or two lines. If a function needs a paragraph, the function probably does too much.
