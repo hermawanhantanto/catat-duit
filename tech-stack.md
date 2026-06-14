@@ -1,0 +1,12 @@
+# Tech Stack
+- Next.js V16
+- TypeScript V5
+- Tailwind CSS V4
+- shadcn/ui
+- Prisma V7
+- PostgreSQL 17
+- Better Auth V1.6
+- grammY
+- Vercel AI SDK
+- Bun V1
+- Railway
