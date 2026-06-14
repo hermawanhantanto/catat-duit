@@ -28,3 +28,18 @@ Prefer Context7 over web search for library docs. Limit `resolve-library-id` to 
 - Errors handled at the level that can act on them. No silent catches.
 - No magic numbers — name them.
 - Match the existing style of the file you're editing.
+
+## 3. Use shadcn/ui for Components and Design
+
+**Consistency over hand-rolled.** Use shadcn/ui primitives for all UI — Button, Form, Input, Label, etc. — instead of native HTML or custom components. Add new components with `bunx shadcn@latest add <name>` rather than reaching for another library.
+
+## 4. Use Feature-Based (Modular) Architecture
+
+**`app/` routes, `features/<name>/` owns each module, `components/` is shared UI, `lib/` is global config.**
+
+- `app/` is the thin routing layer. Pages compose features, never own business logic. API routes at `app/api/<feature>/`.
+- `features/<name>/` owns a module: `components/`, `services/`, `utils/`, `types/`. Add a subdir only when there's content for it — no empty stubs.
+- **Types separation:** feature-specific types (zod schemas, inferred types, feature-scoped interfaces) live in `features/<name>/types/`. Cross-feature types live in the global `src/types/`. The global one is for types more than one feature imports from.
+- `components/ui/` is shadcn primitives shared across features. `components/layout/` is shared structural UI (sidebar, navbar).
+- `lib/` is global config only — Prisma client, auth, env helpers. Nothing feature-specific.
+- Route groups like `(auth)`, `(dashboard)` organize routes without affecting URLs.

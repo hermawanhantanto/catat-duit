@@ -23,7 +23,7 @@ Project scaffold, data model, auth, deploy target.
   Model: `Transaction { id, amount (Int), description, category, date, telegramMessageId?, source (text|photo), groupId?, createdAt, updatedAt }`. Unique index on `telegramMessageId`. Run `bunx prisma migrate dev`.
   - *Verify:* `bunx prisma studio` shows the table, can create + read a row.
 
-- [ ] **1.4 Set up Better Auth (single user)**
+- [x] **1.4 Set up Better Auth (single user)**
   Install, configure email+password, seed one user. Add sign-in / sign-out pages.
   - *Verify:* Sign in at `/signin` with seeded credentials redirects to `/`. Sign out works.
 
