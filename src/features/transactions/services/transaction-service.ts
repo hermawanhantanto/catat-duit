@@ -62,3 +62,34 @@ export async function cancelPendingTransaction(id: number): Promise<boolean> {
   });
   return result.count > 0;
 }
+
+/**
+ * Fetch the most recent `active` transaction, used by the `/undo` command
+ * to preview what is about to be deleted. Tie-breaks on `id desc` for
+ * determinism when two rows share a `createdAt` (same millisecond insert).
+ *
+ * @returns The newest `active` row, or `null` when none exists.
+ */
+export async function getMostRecentActiveTransaction(): Promise<Transaction | null> {
+  return prisma.transaction.findFirst({
+    where: { status: "active" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+  });
+}
+
+/**
+ * Soft-delete an `active` row. Idempotent: returns `false` when the row is
+ * missing or no longer `active` (already soft-deleted, or never confirmed
+ * from `pending`). Mirrors `cancelPendingTransaction` but for the `/undo`
+ * flow, where the starting state is `active` rather than `pending`.
+ *
+ * @param id - The transaction id from the `/undo` confirmation's callback data.
+ * @returns `true` when exactly one row was updated, `false` otherwise.
+ */
+export async function softDeleteTransaction(id: number): Promise<boolean> {
+  const result = await prisma.transaction.updateMany({
+    where: { id, status: "active" },
+    data: { status: "deleted" },
+  });
+  return result.count > 0;
+}
