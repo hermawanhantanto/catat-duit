@@ -1,11 +1,13 @@
-import { minimax } from "vercel-minimax-ai-provider";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import type { LanguageModel } from "ai";
 import type { ChatModelId } from "@/features/llm/types/llm";
 
-const apiKey = process.env.MINIMAX_API_KEY;
+const apiKey = process.env.DEEPSEEK_API_KEY;
 if (!apiKey) {
-  throw new Error("MINIMAX_API_KEY is not set");
+  throw new Error("DEEPSEEK_API_KEY is not set");
 }
+
+const deepseek = createDeepSeek({ apiKey });
 
 /**
  * Resolve a chat model by id. Centralized so the rest of the codebase
@@ -15,5 +17,5 @@ if (!apiKey) {
  * @returns A `LanguageModel` instance ready for `generateText` / `streamText`.
  */
 export function getModel(id: ChatModelId): LanguageModel {
-  return minimax(id);
+  return deepseek(id);
 }

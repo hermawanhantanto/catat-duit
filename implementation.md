@@ -49,13 +49,14 @@ Bot webhook, whitelisting, message receipt.
 ## Phase 3 — Text transaction flow
 The core: parse → confirm → store, with undo and idempotency.
 
-- [ ] **3.1 Set up Vercel AI SDK**
-  Configure with the chosen vision-capable model. API key in env.
-  - *Verify:* A test script calls `generateText` and gets a response.
+- [x] **3.1 Set up Vercel AI SDK**
+  `@ai-sdk/deepseek` (official DeepSeek provider) + `ai` v6, `DEEPSEEK_API_KEY` in env, fail-fast on missing. Model: `deepseek-chat`. `getModel(id)` centralizes model resolution.
+  - *Verify:* `generateText` against DeepSeek returns a real response (verified end-to-end during setup).
 
-- [ ] **3.2 Build text parser prompt**
-  Prompt instructs model to extract `{ amount, date (YYYY-MM-DD), category, description }` from Indonesian free-text. Hardcoded category list embedded in prompt. Defaults: timezone Asia/Jakarta, currency IDR.
-  - *Verify:* "makan siang 15k" → `{ amount: 15000, date: today, category: "Food", description: "makan siang" }`. Edge: "kemarin 20rb bensin" → yesterday's date.
+- [x] **3.2 Build text parser prompt**
+  `parseTransaction(text)` in `features/llm/services/parse-transaction.ts` uses AI SDK `Output.object({ schema })` to enforce strict JSON. Zod schema in `features/llm/types/transaction.ts` with `amount` and `description` nullable; nulls = ambiguous signal (no LLM self-report). Categories embedded in prompt from `CATEGORIES` const. Prompt bakes in IDR currency, Asia/Jakarta timezone, and Indonesian relative-date resolution.
+  Telegram integration: `bot.on("message:text", handleTextMessage)` in `features/telegram/handlers/text-message.ts` calls the parser, replies with a formatted readback, or asks for clarification on null fields. Errors are logged and a generic apology is sent — webhook still returns 200.
+  - *Verify:* End-to-end: send a text to the bot on the whitelisted chat → get a parsed readback or a clarification request. Spec cases verified during setup — "makan siang 15k" → `{ amount: 15000, date: today, category: "Food", description: "makan siang" }`; "kemarin 20rb bensin" → yesterday's date; "halo" and "makan" → ambiguous readback.
 
 - [ ] **3.3 Confirmation message format**
   Render parsed record as: `Lunch, Rp 15.000, 2026-06-13, Food\n\nSave?` with a reply keyboard `[Yes] [No] [Edit]`.

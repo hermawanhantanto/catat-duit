@@ -7,7 +7,7 @@ import {
 } from "../types/transaction";
 import type { ChatModelId } from "../types/llm";
 
-const MODEL_ID: ChatModelId = "MiniMax-M2.7";
+const MODEL_ID: ChatModelId = "deepseek-chat";
 
 export type ParseResult =
   | { ok: true; data: ParsedTransaction }
