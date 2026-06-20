@@ -1,32 +1,50 @@
 import { prisma } from "@/lib/prisma";
-import type { Source, Transaction } from "@/generated/prisma/client";
+import { Prisma, type Source, type Transaction } from "@/generated/prisma/client";
 import type { ParsedTransaction } from "@/features/llm/types/transaction";
 
 /**
- * Insert a fresh `pending` transaction from a parser result. Called by the
- * Telegram handler after a successful free-text parse.
+ * Insert a fresh `pending` transaction from a parser result. Idempotent on
+ * `telegramMessageId`: if a `pending` row for the same message already exists
+ * (because Telegram redelivered the update), the existing row is returned
+ * instead of throwing. The caller can reply with the same confirmation.
  *
  * @param input.parsed - The LLM-extracted transaction fields.
  * @param input.telegramMessageId - The user's incoming message id; unique-constrained.
  * @param input.source - Where the transaction came from (text or photo).
- * @returns The newly created row, including its autoincrement id.
+ * @returns The newly created row, or the pre-existing pending row for the same `telegramMessageId`.
  */
 export async function createPendingTransaction(input: {
   parsed: ParsedTransaction;
   telegramMessageId: string;
   source: Source;
 }): Promise<Transaction> {
-  return prisma.transaction.create({
-    data: {
-      amount: input.parsed.amount ?? 0,
-      description: input.parsed.description ?? "",
-      category: input.parsed.category,
-      date: new Date(`${input.parsed.date}T00:00:00Z`),
-      telegramMessageId: input.telegramMessageId,
-      source: input.source,
-      status: "pending",
-    },
-  });
+  try {
+    return await prisma.transaction.create({
+      data: {
+        amount: input.parsed.amount ?? 0,
+        description: input.parsed.description ?? "",
+        category: input.parsed.category,
+        date: new Date(`${input.parsed.date}T00:00:00Z`),
+        telegramMessageId: input.telegramMessageId,
+        source: input.source,
+        status: "pending",
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      const existing = await prisma.transaction.findFirst({
+        where: {
+          telegramMessageId: input.telegramMessageId,
+          status: "pending",
+        },
+      });
+      if (existing) return existing;
+    }
+    throw err;
+  }
 }
 
 /**

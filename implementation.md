@@ -68,12 +68,12 @@ The core: parse → confirm → store, with undo and idempotency.
   Status flag is a single `Status` enum (`pending | active | deleted`) on `Transaction` (no separate queue table). `getTransactionById` is intentionally not used — the original parsed message is still visible after buttons are stripped, so the reply can be a brief "Saved ✓" / "Cancelled." without restating the fields.
   - *Verify:* Send "makan siang 15k" → see parse + buttons → tap Yes → see "Saved ✓", row exists in DB with `status='active'`. Send "transport 50rb" → tap No → see "Cancelled.", row exists with `status='deleted'`. Double-tap on Yes → only one status flip; second tap is a silent no-op.
 
-- [ ] **3.5 Add /undo command**
+- [x] **3.5 Add /undo command**
   On `/undo`: do NOT delete yet. Reply with the most recent **active** transaction's details (date, description, amount) and an inline keyboard `[Yes, delete] [Cancel]`, using the callback_data scheme `undo-yes:<id>` / `undo-no:<id>`. The prefix is distinct from the parse flow's `yes:<id>` / `no:<id>` — otherwise the existing `handleConfirm` / `handleCancel` from 3.4 would intercept undo taps and call `confirmPendingTransaction` / `cancelPendingTransaction` on a row whose status is `active`, not `pending`, producing a silent no-op. Tap Yes → soft-delete the row (`status='deleted'`), strip the keyboard, reply "Deleted ✓". Tap Cancel → no DB change, strip the keyboard, reply "Kept.".
   The confirmation makes the empty-chat case safe by construction: the new message is the context the cleared chat lost.
   - *Verify:* After 2 saves, `/undo` shows the readback + buttons (no DB change yet). Tap Yes → row is `status='deleted'`, "Deleted ✓" reply. Tap Cancel → row unchanged, "Kept." reply. `/undo` with no active transactions replies "Nothing to undo." Double-tap on Yes → only one status flip, second tap is a silent no-op.
 
-- [ ] **3.6 Add idempotency on telegramMessageId**
+- [x] **3.6 Add idempotency on telegramMessageId**
   Unique constraint on `telegramMessageId` in Prisma. In handler: try insert, on unique violation, look up the existing row and reply with the same confirmation.
   - *Verify:* Manually replay the same Telegram `update_id` — only one row exists; user sees the same confirmation twice (no duplicate).
 

@@ -23,10 +23,14 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     const result = await parseTransaction(text);
 
     if (!result.ok) {
-      await ctx.reply(
-        `I couldn't parse that. ${result.ambiguities.join(" ")}\n\n` +
-          `Example: "lunch 15k"`,
-      );
+      if ("ambiguities" in result) {
+        await ctx.reply(
+          `I couldn't parse that. ${result.ambiguities.join(" ")}\n\n` +
+            `Example: "lunch 15k"`,
+        );
+      } else {
+        await ctx.reply("Sorry, something went wrong. Please try again.");
+      }
       return;
     }
 
